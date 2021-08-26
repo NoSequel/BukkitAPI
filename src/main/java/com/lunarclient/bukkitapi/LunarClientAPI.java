@@ -370,6 +370,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         if (isRunningLunarClient(playerId)) {
             player.sendPluginMessage(this, MESSAGE_CHANNEL, LCPacket.getPacketData(packet));
             this.getServer().getPluginManager().callEvent(new LCPacketSentEvent(player, packet));
+
             return true;
         }
 

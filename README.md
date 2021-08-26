@@ -10,9 +10,6 @@ BukkitImpl is a simple install bukkit plugin which will allow you to enable and 
 ## Developers: 
 > Technical Integration Setup
 
-You'll first need to install [BukkitAPI-NetHandler](https://github.com/LunarClient/BukkitAPI-NetHandler), which will
-define the protocol that can be sent between the server and client for this API to use.
-
 #### Basics:
 `LunarClientAPI.java` is a singleton, you can access it through `LunarClientAPI#getInstance()`.
 
@@ -34,7 +31,7 @@ and likewise, when sent, a `LCPacketSentEvent` -- both of which let you access b
 * Instantiate a `ModSetting` that sets the enabled status to `false`.
 * Send a `LCPacketModSettings` with `ModSettings` that affect the mods you wish to disable, like so:
 
-```
+```java
 ModSettings.ModSetting disabled = new ModSettings.ModSetting(false, new HashMap<>());
 
 sendPacket(event.getPlayer(), new LCPacketModSettings(

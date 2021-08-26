@@ -21,8 +21,8 @@ public class LunarClientLoginListener implements Listener {
         final Player player = event.getPlayer();
 
         Bukkit.getScheduler().runTaskLater(lunarClientAPI, () -> {
-            if (!lunarClientAPI.isRunningLunarClient(player)) {
-                lunarClientAPI.failPlayerRegister(player);
+            if (!this.lunarClientAPI.isRunningLunarClient(player)) {
+                this.lunarClientAPI.failPlayerRegister(player);
             }
         }, 2 * 20L);
     }
@@ -35,30 +35,31 @@ public class LunarClientLoginListener implements Listener {
 
         final Player player = event.getPlayer();
 
-        lunarClientAPI.registerPlayer(player);
-        lunarClientAPI.getServer().getPluginManager().callEvent(new LCPlayerRegisterEvent(event.getPlayer()));
+        this.lunarClientAPI.registerPlayer(player);
+        this.lunarClientAPI.getServer().getPluginManager().callEvent(new LCPlayerRegisterEvent(event.getPlayer()));
 
-        updateWorld(event.getPlayer());
+        this.updateWorld(event.getPlayer());
     }
 
     @EventHandler
     public void onUnregister(PlayerUnregisterChannelEvent event) {
         if (event.getChannel().equalsIgnoreCase(LunarClientAPI.MESSAGE_CHANNEL)) {
-            lunarClientAPI.unregisterPlayer(event.getPlayer(), false);
+            this.lunarClientAPI.unregisterPlayer(event.getPlayer(), false);
         }
     }
 
     @EventHandler
     public void onUnregister(PlayerQuitEvent event) {
-        lunarClientAPI.unregisterPlayer(event.getPlayer(), true);
+        this.lunarClientAPI.unregisterPlayer(event.getPlayer(), true);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onWorldChange(PlayerChangedWorldEvent event) {
-        updateWorld(event.getPlayer());
+        this.updateWorld(event.getPlayer());
     }
 
     private void updateWorld(Player player) {
-        lunarClientAPI.sendPacket(player, new LCPacketUpdateWorld(lunarClientAPI.getWorldIdentifier(player.getWorld())));
+        this.lunarClientAPI
+                .sendPacket(player, new LCPacketUpdateWorld(lunarClientAPI.getWorldIdentifier(player.getWorld())));
     }
 }
