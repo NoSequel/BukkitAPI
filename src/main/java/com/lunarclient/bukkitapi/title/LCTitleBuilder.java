@@ -33,8 +33,10 @@ public final class LCTitleBuilder {
     }
 
     private final String message;
-    private TitleType type;
+
     private float scale;
+
+    private TitleType type;
     private Duration displayDuration;
     private Duration fadeInDuration;
     private Duration fadeOutDuration;
@@ -148,10 +150,12 @@ public final class LCTitleBuilder {
      * @return The {@link LCPacketTitle} generated that can be used later if needed.
      */
     public LCPacketTitle sendAndBuild(Player... players) {
-        LCPacketTitle title = build();
+        final LCPacketTitle title = build();
+
         for (Player player : players) {
             LunarClientAPI.getInstance().sendPacket(player, title);
         }
+
         return title;
     }
 }

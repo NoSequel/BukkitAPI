@@ -34,7 +34,15 @@ public final class LCWaypoint {
      * @param visible Weather or not the waypoint should be visible. This will likely always be true.
      */
     public LCWaypoint(String name, Location location, int color, boolean forced, boolean visible) {
-        this(name, location.getBlockX(), location.getBlockY(), location.getBlockZ(), LunarClientAPI.getInstance().getWorldIdentifier(location.getWorld()), color, forced, visible);
+        this(name,
+                location.getBlockX(),
+                location.getBlockY(),
+                location.getBlockZ(),
+                LunarClientAPI.getInstance().getWorldIdentifier(location.getWorld()),
+                color,
+                forced,
+                visible
+        );
     }
 
     /**
@@ -50,7 +58,12 @@ public final class LCWaypoint {
      * @param forced If the client should be able to remove the waypoint, or if it is forced for gameplay reasons.
      */
     public LCWaypoint(String name, Location location, int color, boolean forced) {
-        this(name, location, color, forced, true);
+        this(name,
+                location,
+                color,
+                forced,
+                true
+        );
     }
 
 }

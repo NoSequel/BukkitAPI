@@ -39,18 +39,22 @@ public class LunarClientAPICooldown {
      * @param cooldownName The name of the {@link LCCooldown} that is sent.
      */
     public void sendCooldown(Player player, String cooldownName) {
-        String cooldownId = cooldownName.toLowerCase();
+        final String cooldownId = cooldownName.toLowerCase();
+
         if (!registeredCooldowns.containsKey(cooldownId)) {
             throw new IllegalStateException("Attempted to send a cooldown that isn't registered [" + cooldownName + "]");
         }
+
         registeredCooldowns.get(cooldownId).send(player);
     }
 
     public void clearCooldown(Player player, String cooldownName) {
-        String cooldownId = cooldownName.toLowerCase();
+        final String cooldownId = cooldownName.toLowerCase();
+
         if (!registeredCooldowns.containsKey(cooldownId)) {
             throw new IllegalStateException("Attempted to send a cooldown that isn't registered [" + cooldownName + "]");
         }
+
         registeredCooldowns.get(cooldownId).clear(player);
     }
 }

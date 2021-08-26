@@ -19,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.Messenger;
 import org.bukkit.util.Vector;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -31,8 +32,10 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     @Getter private static LunarClientAPI instance;
 
     @Setter private LCNetHandlerServer netHandlerServer = new LunarClientDefaultNetHandler();
+
     private final Set<UUID> playersRunningLunarClient = Collections.newSetFromMap(new ConcurrentHashMap<>());
     private final Set<UUID> playersNotRegistered = new HashSet<>();
+
     private final Map<UUID, List<LCPacket>> packetQueue = new HashMap<>();
     private final Map<UUID, Function<World, String>> worldIdentifiers = new HashMap<>();
 
@@ -40,8 +43,8 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
     public void onEnable() {
         instance = this;
 
-        registerPluginChannel(MESSAGE_CHANNEL);
-        getServer().getPluginManager().registerEvents(new LunarClientLoginListener(this), this);
+        this.registerPluginChannel(MESSAGE_CHANNEL);
+        this.getServer().getPluginManager().registerEvents(new LunarClientLoginListener(this), this);
     }
 
     /**
@@ -50,11 +53,13 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param bukkitChannel The incoming plugin channel based on Minecraft Version.
      */
     private void registerPluginChannel(String bukkitChannel) {
-        Messenger messenger = getServer().getMessenger();
+        final Messenger messenger = getServer().getMessenger();
+
         messenger.registerOutgoingPluginChannel(this, bukkitChannel);
         messenger.registerIncomingPluginChannel(this, bukkitChannel, (channel, player, bytes) -> {
-            LCPacket packet = LCPacket.handle(bytes, player);
-            Bukkit.getPluginManager().callEvent(new LCPacketReceivedEvent(player, packet));
+            final LCPacket packet = LCPacket.handle(bytes, player);
+            this.getServer().getPluginManager().callEvent(new LCPacketReceivedEvent(player, packet));
+
             packet.process(netHandlerServer);
         });
     }
@@ -71,8 +76,8 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param player The player that has been online for at least 2 seconds.
      */
     public void failPlayerRegister(Player player) {
-        playersNotRegistered.add(player.getUniqueId());
-        packetQueue.remove(player.getUniqueId());
+        this.playersNotRegistered.add(player.getUniqueId());
+        this.packetQueue.remove(player.getUniqueId());
     }
 
     /**
@@ -85,12 +90,15 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param player The player registering as a Lunar Client user.
      */
     public void registerPlayer(Player player) {
-        playersNotRegistered.remove(player.getUniqueId());
-        playersRunningLunarClient.add(player.getUniqueId());
-        if (packetQueue.containsKey(player.getUniqueId())) {
-            packetQueue.get(player.getUniqueId()).forEach(p -> sendPacket(player,  p));
+        this.playersNotRegistered.remove(player.getUniqueId());
+        this.playersRunningLunarClient.add(player.getUniqueId());
 
-            packetQueue.remove(player.getUniqueId());
+        if (packetQueue.containsKey(player.getUniqueId())) {
+            for (LCPacket packet : packetQueue.get(player.getUniqueId())) {
+                this.sendPacket(player, packet);
+            }
+
+            this.packetQueue.remove(player.getUniqueId());
         }
     }
 
@@ -107,12 +115,13 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param quit A {@link Boolean} value of weather the player quit or simply unregistered from the channel.
      */
     public void unregisterPlayer(Player player, boolean quit) {
-        playersRunningLunarClient.remove(player.getUniqueId());
+        this.playersRunningLunarClient.remove(player.getUniqueId());
+
         if (quit) {
-            playersNotRegistered.remove(player.getUniqueId());
+            this.playersNotRegistered.remove(player.getUniqueId());
         } else {
-            playersNotRegistered.add(player.getUniqueId());
-            getServer().getPluginManager().callEvent(new LCPlayerUnregisterEvent(player));
+            this.playersNotRegistered.add(player.getUniqueId());
+            this.getServer().getPluginManager().callEvent(new LCPlayerUnregisterEvent(player));
         }
     }
 
@@ -144,7 +153,9 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @return An unmodifiableSet of the players currentl running lunar client.
      */
     public Set<Player> getPlayersRunningLunarClient() {
-        return Collections.unmodifiableSet(playersRunningLunarClient.stream().map(Bukkit::getPlayer).collect(Collectors.toSet()));
+        return Collections.unmodifiableSet(playersRunningLunarClient.stream()
+                .map(Bukkit::getPlayer)
+                .collect(Collectors.toSet()));
     }
 
     /**
@@ -156,7 +167,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param state The new state of the StaffModule.
      */
     public void setStaffModuleState(Player player, StaffModule module, boolean state) {
-        sendPacket(player, new LCPacketStaffModState(module.name(), state));
+        this.sendPacket(player, new LCPacketStaffModState(module.name(), state));
     }
 
     /**
@@ -167,7 +178,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      */
     public void giveAllStaffModules(Player player) {
         for (StaffModule module : StaffModule.values()) {
-            setStaffModuleState(player, module, true);
+            this.setStaffModuleState(player, module, true);
         }
     }
 
@@ -179,7 +190,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      */
     public void disableAllStaffModules(Player player) {
         for (StaffModule module : StaffModule.values()) {
-            setStaffModuleState(player, module, false);
+            this.setStaffModuleState(player, module, false);
         }
     }
 
@@ -191,8 +202,8 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param packet The teammates to send to the player.
      */
     public void sendTeammates(Player player, LCPacketTeammates packet) {
-        validatePlayers(player, packet);
-        sendPacket(player, packet);
+        this.validatePlayers(player, packet);
+        this.sendPacket(player, packet);
     }
 
     /**
@@ -204,7 +215,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param packet The teammates packet to verify.
      */
     private void validatePlayers(Player sendingTo, LCPacketTeammates packet) {
-        packet.getPlayers().entrySet().removeIf(entry -> Bukkit.getPlayer(entry.getKey()) != null && !Bukkit.getPlayer(entry.getKey()).getWorld().equals(sendingTo.getWorld()));
+        for (Map.Entry<UUID, Map<String, Double>> entry : packet.getPlayers().entrySet()) {
+            final UUID uuid = entry.getKey();
+            final Player player = Bukkit.getPlayer(uuid);
+
+            if (player.getWorld().equals(sendingTo.getWorld())) {
+                packet.getPlayers().remove(uuid);
+            }
+        }
     }
 
     /**
@@ -216,7 +234,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param lines The lines of the hologram to be sent to the player.
      */
     public void addHologram(Player player, UUID id, Vector position, String[] lines) {
-        sendPacket(player, new LCPacketHologram(id, position.getX(), position.getY(), position.getZ(), Arrays.asList(lines)));
+        this.sendPacket(player, new LCPacketHologram(id, position.getX(), position.getY(), position.getZ(), Arrays.asList(lines)));
     }
 
     /**
@@ -227,7 +245,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param lines The new lines to show to the player.
      */
     public void updateHologram(Player player, UUID id, String[] lines) {
-        sendPacket(player, new LCPacketHologramUpdate(id, Arrays.asList(lines)));
+        this.sendPacket(player, new LCPacketHologramUpdate(id, Arrays.asList(lines)));
     }
 
     /**
@@ -237,7 +255,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param id The ID of the previously created hologram.
      */
     public void removeHologram(Player player, UUID id) {
-        sendPacket(player, new LCPacketHologramRemove(id));
+        this.sendPacket(player, new LCPacketHologramRemove(id));
     }
 
     /**
@@ -249,7 +267,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param viewer The observer who will see the targets nametag as a lunar client nametag.
      */
     public void overrideNametag(Player target, List<String> nametag, Player viewer) {
-        sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), nametag));
+        this.sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), nametag));
     }
 
     /**
@@ -261,7 +279,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param viewer The observer who will see the targets nametag as normal (bukkit).
      */
     public void resetNametag(Player target, Player viewer) {
-        sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), null));
+        this.sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), null));
     }
 
     /**
@@ -272,7 +290,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param viewer The observer who will hide the targets nametag.
      */
     public void hideNametag(Player target, Player viewer) {
-        sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), Collections.emptyList()));
+        this.sendPacket(viewer, new LCPacketNametagsOverride(target.getUniqueId(), Collections.emptyList()));
     }
 
     /**
@@ -283,13 +301,11 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @return {@link String} of the set name of the world, or default to the worlds unique id.
      */
     public String getWorldIdentifier(World world) {
-        String worldIdentifier = world.getUID().toString();
+        final UUID worldIdentifier = world.getUID();
 
-        if (worldIdentifiers.containsKey(world.getUID())) {
-            worldIdentifier = worldIdentifiers.get(world.getUID()).apply(world);
-        }
-
-        return worldIdentifier;
+        return worldIdentifiers.containsKey(worldIdentifier)
+                ? worldIdentifiers.get(worldIdentifier).apply(world)
+                : worldIdentifier.toString();
     }
 
     /**
@@ -301,7 +317,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param identifier The new function identifier.
      */
     public void registerWorldIdentifier(World world, Function<World, String> identifier) {
-        worldIdentifiers.put(world.getUID(), identifier);
+        this.worldIdentifiers.put(world.getUID(), identifier);
     }
 
     /**
@@ -313,7 +329,15 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param waypoint A new waypoint object to send to the player.
      */
     public void sendWaypoint(Player player, LCWaypoint waypoint) {
-        sendPacket(player, new LCPacketWaypointAdd(waypoint.getName(), waypoint.getWorld(), waypoint.getColor(), waypoint.getX(), waypoint.getY(), waypoint.getZ(), waypoint.isForced(), waypoint.isVisible()));
+        this.sendPacket(player, new LCPacketWaypointAdd(waypoint.getName(),
+                waypoint.getWorld(),
+                waypoint.getColor(),
+                waypoint.getX(),
+                waypoint.getY(),
+                waypoint.getZ(),
+                waypoint.isForced(),
+                waypoint.isVisible())
+        );
     }
 
     /**
@@ -323,7 +347,7 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @param waypoint A waypoint object that the server has previously sent.
      */
     public void removeWaypoint(Player player, LCWaypoint waypoint) {
-        sendPacket(player, new LCPacketWaypointRemove(waypoint.getName(), waypoint.getWorld()));
+        this.sendPacket(player, new LCPacketWaypointRemove(waypoint.getName(), waypoint.getWorld()));
     }
 
     /**
@@ -341,11 +365,11 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
      * @return {@link Boolean} value of weather the packet was sent.
      */
     public boolean sendPacket(Player player, LCPacket packet) {
-        UUID playerId = player.getUniqueId();
+        final UUID playerId = player.getUniqueId();
+
         if (isRunningLunarClient(playerId)) {
-            String channel = MESSAGE_CHANNEL;
-            player.sendPluginMessage(this, channel, LCPacket.getPacketData(packet));
-            Bukkit.getPluginManager().callEvent(new LCPacketSentEvent(player, packet));
+            player.sendPluginMessage(this, MESSAGE_CHANNEL, LCPacket.getPacketData(packet));
+            this.getServer().getPluginManager().callEvent(new LCPacketSentEvent(player, packet));
             return true;
         }
 
@@ -355,12 +379,14 @@ public final class LunarClientAPI extends JavaPlugin implements Listener {
         // lunar client players.
         // Either way, the packet failed to send (this time).
 
-        if (!playersNotRegistered.contains(playerId)) {
-            if (!packetQueue.containsKey(playerId)) {
-                packetQueue.put(playerId, new ArrayList<>());
+        if (!this.playersNotRegistered.contains(playerId)) {
+            if (!this.packetQueue.containsKey(playerId)) {
+                this.packetQueue.put(playerId, new ArrayList<>());
             }
-            packetQueue.get(playerId).add(packet);
+
+            this.packetQueue.get(playerId).add(packet);
         }
+
         return false;
     }
 

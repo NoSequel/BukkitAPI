@@ -37,5 +37,4 @@ public interface LCPacketWrapper<T extends LCPacket> {
         LunarClientAPI.getInstance().sendPacket(player, packet);
     }
 
-
 }

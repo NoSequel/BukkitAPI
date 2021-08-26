@@ -15,8 +15,7 @@ public class LCCooldown implements LCPacketWrapper<LCPacketCooldown> {
     private final String name;
     private final long millis;
     private final Material itemId;
-    // The packet that will be sent to the Lunar Client player
-    // Because of @Data, we don't need a getter.
+
     private final LCPacketCooldown packet;
 
     /**
@@ -28,10 +27,11 @@ public class LCCooldown implements LCPacketWrapper<LCPacketCooldown> {
      */
     public LCCooldown(String name, long millis, Material itemId) {
         Preconditions.checkArgument(millis > 0, "Cooldown must have a valid time > 0.");
+
         this.name = Preconditions.checkNotNull(name, "Cooldown Name cannot be null.");
         this.millis = millis;
         this.itemId = Preconditions.checkNotNull(itemId, "Cooldown Icon cannot be null.");
-        packet = new LCPacketCooldown(name, millis, itemId.getId());
+        this.packet = new LCPacketCooldown(name, millis, itemId.getId());
     }
 
     /**

@@ -18,7 +18,7 @@ public class LunarClientLoginListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerJoin(PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
 
         Bukkit.getScheduler().runTaskLater(lunarClientAPI, () -> {
             if (!lunarClientAPI.isRunningLunarClient(player)) {
@@ -32,11 +32,12 @@ public class LunarClientLoginListener implements Listener {
         if (!event.getChannel().equalsIgnoreCase(LunarClientAPI.MESSAGE_CHANNEL)) {
             return;
         }
-        Player player = event.getPlayer();
+
+        final Player player = event.getPlayer();
 
         lunarClientAPI.registerPlayer(player);
-
         lunarClientAPI.getServer().getPluginManager().callEvent(new LCPlayerRegisterEvent(event.getPlayer()));
+
         updateWorld(event.getPlayer());
     }
 
@@ -58,8 +59,6 @@ public class LunarClientLoginListener implements Listener {
     }
 
     private void updateWorld(Player player) {
-        String worldIdentifier = lunarClientAPI.getWorldIdentifier(player.getWorld());
-
-        lunarClientAPI.sendPacket(player, new LCPacketUpdateWorld(worldIdentifier));
+        lunarClientAPI.sendPacket(player, new LCPacketUpdateWorld(lunarClientAPI.getWorldIdentifier(player.getWorld())));
     }
 }

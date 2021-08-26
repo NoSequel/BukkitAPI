@@ -89,11 +89,13 @@
             <version>1.11.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.16.10</version>
         </dependency>
+
         <dependency>
             <groupId>com.lunarclient</groupId>
             <artifactId>bukkitapi-nethandler</artifactId>
